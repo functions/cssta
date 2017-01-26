@@ -48,7 +48,7 @@ module.exports.extractCsstaCallParts = (stringArg, interpolationType) => {
 
   if (t.isTemplateLiteral(stringArg) && (allowInterpolation || !hasInterpolation)) {
     const { quasis, expressions } = stringArg;
-    const substitutionNames = expressions.map((value, index) => `__substitution-${index}__`);
+    const substitutionNames = expressions.map((value, index) => `/*cssta-substitution-${index}*/`);
     cssText =
       quasis[0].value.cooked +
       substitutionNames.map((name, index) => name + quasis[index + 1].value.cooked).join('');

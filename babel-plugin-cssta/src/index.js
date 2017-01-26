@@ -37,12 +37,9 @@ const transformCsstaCall = (path, state, target, stringArg) => {
   const { callee, component, csstaType } = csstaReferenceParts;
 
   let interpolationType;
-  const interpolateValuesOnly = Boolean(getOptimisationOpts(state, 'interpolateValuesOnly'));
 
   if (!canInterpolate[csstaType]) {
     interpolationType = interpolationTypes.DISALLOW;
-  } else if (!interpolateValuesOnly) {
-    interpolationType = interpolationTypes.IGNORE;
   } else {
     interpolationType = interpolationTypes.ALLOW;
   }

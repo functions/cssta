@@ -107,7 +107,10 @@ module.exports.getOptimisationOpts = (state, name) => {
 };
 
 const getSubstitutionRegExp = (substitutionMap) => {
-  const substititionNames = Object.keys(substitutionMap);
+  const substititionNames = _.flow(
+    _.keys,
+    _.map(_.escapeRegExp)
+  )(substitutionMap);
   const substitionNamesRegExp = new RegExp(`(${substititionNames.join('|')})`, 'g');
   return substitionNamesRegExp;
 };

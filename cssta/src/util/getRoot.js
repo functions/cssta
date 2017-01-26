@@ -40,9 +40,7 @@ const nestNode = (node) => {
 
 const scopingTypes = ['nesting', 'attribute'];
 
-module.exports = (inputCss, allowCombinators = false) => {
-  const root = postcss.parse(inputCss);
-
+const transformRoot = (root, allowCombinators = false) => {
   iterateChildren(root, nestNode);
 
   const propTypes = {};
@@ -107,3 +105,9 @@ module.exports = (inputCss, allowCombinators = false) => {
 
   return { root, propTypes };
 };
+
+module.exports = (inputCss, allowCombinators = false) => {
+  const root = postcss.parse(inputCss);
+  return transformRoot(root, allowCombinators);
+};
+module.exports.transformRoot = transformRoot;

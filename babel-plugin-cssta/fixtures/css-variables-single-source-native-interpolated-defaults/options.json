@@ -1,6 +1,5 @@
 {
   "optimizations": [
-    ["singleSourceOfVariables", { "sourceFilename": "actual.js" }],
-    "interpolateValuesOnly"
+    ["singleSourceOfVariables", { "sourceFilename": "actual.js" }]
   ]
 }

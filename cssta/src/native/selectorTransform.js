@@ -69,6 +69,7 @@ module.exports.getValidatorSourceForSelector = selector =>
   `(function(${propArg}) {${getBaseValidatorSourceForSelector(selector)}})`;
 
 module.exports.createValidatorForSelector = (selector) => {
+  if (selector === '&') return () => true; // optimisation
   const source = getBaseValidatorSourceForSelector(selector);
   return new Function(propArg, source); // eslint-disable-line
 };

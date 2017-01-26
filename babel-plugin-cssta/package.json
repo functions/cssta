@@ -45,6 +45,7 @@
     "cssta": "^0.3.0",
     "eslint-plugin-import": "^2.2.0",
     "lodash": "^4.17.2",
-    "mkdirp": "^0.5.1"
+    "mkdirp": "^0.5.1",
+    "postcss": "^5.2.11"
   }
 }

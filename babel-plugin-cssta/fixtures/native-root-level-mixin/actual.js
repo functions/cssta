@@ -1,6 +1,8 @@
 import cssta from 'cssta/native';
 import { View } from 'react-native';
 
+const mixin = 'color: red;';
+
 cssta(View)`
-  font: bold italic 12px/18px "Helvetica";
+  ${mixin}
 `;

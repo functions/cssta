@@ -1,13 +1,13 @@
-import { StyleSheet as _StyleSheet } from 'react-native';
 import _staticComponent from 'cssta/dist/native/staticComponent';
+import { StyleSheet as _StyleSheet } from 'react-native';
 
 import { View } from 'react-native';
 
 var _csstaStyle = _StyleSheet.create({
   0: {
     'fontStyle': 'italic',
-    'fontVariant': [],
     'fontWeight': 'bold',
+    'fontVariant': [],
     'fontSize': 12,
     'fontFamily': 'Helvetica',
     'lineHeight': 18
