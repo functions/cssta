@@ -1,8 +1,8 @@
-import _createMixinComponent from 'cssta/dist/native/createMixinComponent';
+import _createComponent from 'cssta/dist/native/helpers/createComponent';
 import _cssToReactNative from 'css-to-react-native';
-import _ruleLevelMixin from 'cssta/dist/native/ruleLevelMixin';
+import _ruleLevelMixin from 'cssta/dist/native/helpers/ruleLevelMixin';
 import { StyleSheet as _StyleSheet } from 'react-native';
-import _topLevelMixin from 'cssta/dist/native/topLevelMixin';
+import _topLevelMixin from 'cssta/dist/native/helpers/topLevelMixin';
 
 import { View } from 'react-native';
 
@@ -23,7 +23,7 @@ var _csstaStyle2 = _StyleSheet.create({
   1: _cssToReactNative([['padding', `1px ${ padding }`]])
 });
 
-_createMixinComponent(View, [_topLevelMixin(mixin1), {
+_createComponent(View, [_topLevelMixin(mixin1), {
   'type': 'static',
   'rules': [{
     'validate': function (p) {

@@ -1,8 +1,8 @@
-import _createMixinComponent from 'cssta/dist/native/createMixinComponent';
-import _topLevelMixin from 'cssta/dist/native/topLevelMixin';
+import _createComponent from 'cssta/dist/native/helpers/createComponent';
+import _topLevelMixin from 'cssta/dist/native/helpers/topLevelMixin';
 
 import { View } from 'react-native';
 
 const mixin = 'color: red;';
 
-_createMixinComponent(View, [_topLevelMixin(mixin)]);
+_createComponent(View, [_topLevelMixin(mixin)]);

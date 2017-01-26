@@ -1,11 +1,11 @@
-import _createMixinComponent from 'cssta/dist/native/createMixinComponent';
-import _ruleLevelMixin from 'cssta/dist/native/ruleLevelMixin';
+import _createComponent from 'cssta/dist/native/helpers/createComponent';
+import _ruleLevelMixin from 'cssta/dist/native/helpers/ruleLevelMixin';
 
 import { View } from 'react-native';
 
 const mixin = 'color: red;';
 
-_createMixinComponent(View, [_ruleLevelMixin(mixin, {
+_createComponent(View, [_ruleLevelMixin(mixin, {
   'validate': function (p) {
     return !!p['attr'];
   },
