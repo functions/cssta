@@ -9,7 +9,7 @@ var _csstaStyle = _StyleSheet.create({
   }
 });
 
-_staticComponent(View, [], [{
+const StyledView = _staticComponent(View, [], [{
   'validate': function (p) {
     return true;
   },

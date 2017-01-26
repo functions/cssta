@@ -9,6 +9,9 @@ const { transformRoot } = require('cssta/src/util/getRoot');
 const { extractRulesFromRoot } = require('cssta/src/native/extractRules');
 const { default: cssToReactNative, getPropertyName } = require('css-to-react-native');
 const {
+  getSubstitutionName, isMixinSubstitition, fixSubstitutions,
+} = require('../transformUtil/extractCsstaCallParts');
+const {
   getOrCreateImportReference, jsonToNode, containsSubstitution, getSubstitutionRegExp,
 } = require('../util');
 
@@ -119,9 +122,10 @@ const getStringWithSubstitutedValues = (substitutionMap, value) => {
 
   if (_.isEmpty(expressionValues)) return t.stringLiteral(quasiValues[0]);
 
+  // TODO: Is cooked really raw?
   const quasis = [].concat(
-    _.map(raw => t.templateElement({ raw }), _.initial(quasiValues)),
-    t.templateElement({ raw: _.last(quasiValues) }, true)
+    _.map(raw => t.templateElement({ raw, cooked: raw }), _.initial(quasiValues)),
+    t.templateElement({ raw: _.last(quasiValues), cooked: _.last(quasiValues) }, true)
   );
   const expressions = _.map(_.propertyOf(substitutionMap), expressionValues);
 
@@ -268,16 +272,20 @@ const createDynamicRulesBody = (substitutionMap, rules) => (
   ]), rules))
 );
 
-const getSubstitutionName = node => `/*${node.text}*/`;
-
-const isMixinSubstitition = (substitutionMap, node) =>
-  node.type === 'comment' && getSubstitutionName(node) in substitutionMap;
+const addStylesheet = (path, stylesheet) => {
+  let pathBeforeProgram = path;
+  while (!t.isProgram(pathBeforeProgram.parentPath)) {
+    pathBeforeProgram = pathBeforeProgram.parentPath;
+  }
+  pathBeforeProgram.insertBefore(stylesheet);
+};
 
 module.exports = (path, state, component, cssText, substitutionMap) => {
   const { singleSourceOfVariables } = state;
   const root = postcss.parse(cssText);
+  fixSubstitutions(substitutionMap, root);
 
-  const INTERMEDIATE_ROOT_WITH_DECLS = 0;
+  const INTERMEDIATE_ROOT_RULES_OR_MIXIN = 0;
   const INTERMEDIATE_ROOT_STATIC_OR_DYNAMIC = 1;
 
   const RESOLVED_STATIC_ROOT = 2;
@@ -293,29 +301,28 @@ module.exports = (path, state, component, cssText, substitutionMap) => {
           data: { substitution: getSubstitutionName(node) },
           propTypes: null,
         });
-      } else if (_.get('type', _.last(accum)) !== INTERMEDIATE_ROOT_WITH_DECLS) {
+      } else if (_.get('type', _.last(accum)) !== INTERMEDIATE_ROOT_RULES_OR_MIXIN) {
+        const nextRoot = postcss.root();
+        nextRoot.append(node); // ensure parent is set
         accum.push({
-          type: INTERMEDIATE_ROOT_WITH_DECLS,
-          data: { nodes: [node] },
+          type: INTERMEDIATE_ROOT_RULES_OR_MIXIN,
+          data: { node: nextRoot },
           propTypes: null,
         });
       } else {
-        _.last(accum).data.nodes.push(node);
+        _.last(accum).data.node.append(node);
       }
       return accum;
     }, []),
     _.flatMap((rootPart) => {
-      if (rootPart.type !== INTERMEDIATE_ROOT_WITH_DECLS) return rootPart;
+      if (rootPart.type !== INTERMEDIATE_ROOT_RULES_OR_MIXIN) return rootPart;
 
       const RESOLVED_RULE = 0;
       const RULE_MIXIN = 1;
 
       const nextRuleParts = [];
 
-      // FIXME: All the decls don't have a root associated with them
-      // We just reparse to fix this, but this is a hack
-      const rootPartRoot = postcss.parse(String(postcss.root({ nodes: rootPart.data.nodes })));
-      const { root: nextRoot, propTypes: nextPropTypes } = transformRoot(rootPartRoot);
+      const { root: nextRoot, propTypes: nextPropTypes } = transformRoot(rootPart.data.node);
       nextRoot.walkRules((ruleNode) => {
         ruleNode.nodes.forEach((node) => {
           if (isMixinSubstitition(substitutionMap, node)) {
@@ -331,10 +338,10 @@ module.exports = (path, state, component, cssText, substitutionMap) => {
             nextRuleParts.push({
               type: RESOLVED_RULE,
               selector: ruleNode.selector,
-              data: { nodes: [node] },
+              data: { nodes: [{ prop: node.prop, value: node.value }] },
             });
           } else {
-            _.last(nextRuleParts).data.nodes.push(node);
+            _.last(nextRuleParts).data.nodes.push({ prop: node.prop, value: node.value });
           }
         });
       });
@@ -371,16 +378,15 @@ module.exports = (path, state, component, cssText, substitutionMap) => {
       if (rootPart.type !== INTERMEDIATE_ROOT_STATIC_OR_DYNAMIC) return rootPart;
 
       const ruleNodes = _.map(rule => (
-        postcss.rule({ selector: rule.selector, nodes: rule.nodes })
+        postcss.rule({
+          selector: rule.selector,
+          nodes: _.map(({ prop, value }) => postcss.decl({ prop, value }), rule.nodes),
+        })
       ), rootPart.data.rules);
 
       const rootPartRoot = postcss.root({ nodes: ruleNodes });
       // We have to do this to preserve comments from substitions
-      const { rules, importedVariables } = extractRulesFromRoot(rootPartRoot, node => (
-        ((node.raws.between || '') + (node.raws.value ? node.raws.value.raw : node.value))
-          .replace(/^:\s*/, '')
-          .replace(/\/\*(?!cssta-substitution-)(?:[^*]|\*(?!\/))*\*\//g, '')
-      ));
+      const { rules, importedVariables } = extractRulesFromRoot(rootPartRoot);
 
       const exportedVariables = _.reduce(_.assign, {}, _.map('exportedVariables', rules));
       const exportsVariables = !_.isEmpty(exportedVariables);
@@ -434,7 +440,7 @@ module.exports = (path, state, component, cssText, substitutionMap) => {
     ]);
 
     path.replaceWith(newElement);
-    if (!stylesheetIsEmpty) path.insertBefore(styleSheetElement);
+    if (!stylesheetIsEmpty) addStylesheet(path, styleSheetElement);
   } else if (rootParts.length === 1 && rootParts[0].type === RESOLVED_DYNAMIC_ROOT) {
     const { data: { rules, importedVariables }, propTypes } = rootParts[0];
     const rulesBody = createDynamicRulesBody(substitutionMap, rules);
@@ -461,7 +467,7 @@ module.exports = (path, state, component, cssText, substitutionMap) => {
           rulesBody, styleSheetElement, stylesheetIsEmpty,
         } = createStaticStylesheet(path, substitutionMap, rules);
 
-        if (!stylesheetIsEmpty) path.insertBefore(styleSheetElement);
+        if (!stylesheetIsEmpty) addStylesheet(path, styleSheetElement);
 
         return t.objectExpression([
           t.objectProperty(

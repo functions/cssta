@@ -1,3 +1,4 @@
+const postcss = require('postcss');
 const t = require('babel-types');
 const _ = require('lodash/fp');
 const { getCsstaTypeForCallee } = require('../util');
@@ -31,6 +32,13 @@ module.exports.getCsstaReferences = (path, node) => {
 };
 
 module.exports.interpolationTypes = interpolationTypes;
+
+const getSubstitutionName = node => `/*${node.text}*/`;
+module.exports.getSubstitutionName = getSubstitutionName;
+const isMixinSubstitition = (substitutionMap, node) =>
+  node.type === 'comment' && getSubstitutionName(node) in substitutionMap;
+module.exports.isMixinSubstitition = isMixinSubstitition;
+
 module.exports.extractCsstaCallParts = (stringArg, interpolationType) => {
   if (!t.isTemplateLiteral(stringArg) && !t.isStringLiteral(stringArg)) return null;
 
@@ -60,4 +68,13 @@ module.exports.extractCsstaCallParts = (stringArg, interpolationType) => {
   if (cssText === null) return null;
 
   return { cssText, substitutionMap };
+};
+
+module.exports.fixSubstitutions = (substitutionMap, root) => {
+  root.walkDecls((decl) => {
+    // eslint-disable-next-line
+    decl.value = ((decl.raws.between || '') + (decl.raws.value ? decl.raws.value.raw : decl.value))
+      .replace(/^:\s*/, '')
+      .replace(/\/\*(?!cssta-substitution-)(?:[^*]|\*(?!\/))*\*\//g, '');
+  });
 };
