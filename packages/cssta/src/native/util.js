@@ -1,7 +1,7 @@
 // @flow
-/*:: import type { VariableWithValidator } from './types' */
+/*:: import type { BaseVariableWithValidator } from './types' */
 
-module.exports.getAppliedRules = /*:: <T: VariableWithValidator> */ (
+module.exports.getAppliedRules = /*:: <T: BaseVariableWithValidator> */ (
   rules /*: T[] */,
   ownProps /*: Object */
 ) /*: T[] */ =>

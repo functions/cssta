@@ -5,8 +5,9 @@ const { StyleSheet, Easing } = require('react-native');
 /* eslint-enable */
 const { getAppliedRules } = require('../util');
 /*:: import type { Args } from '../types' */
+/*:: import type { DynamicProps } from '../../factories/types' */
 
-module.exports.mergeStyles = (props /*: { ownProps: Object, args: Args } */) =>
+module.exports.mergeStyles = (props /*: DynamicProps<Args> */) =>
   StyleSheet.flatten(getAppliedRules(props.args.rules, props.ownProps).map(rule => rule.style));
 
 /*::

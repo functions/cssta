@@ -117,7 +117,11 @@ module.exports = class TransitionEnhancer extends Component {
       }, {});
 
       const newRule = { style: fixedAnimations };
-      const nextArgs = Object.assign({}, args, { rules: args.rules.concat(newRule) });
+      const nextArgs /*: Args */ = {
+        transitionedProperties: args.transitionedProperties,
+        keyframes: args.keyframes,
+        rules: args.rules.concat(newRule),
+      };
       nextProps = Object.assign({}, this.props, { args: nextArgs });
     } else {
       nextProps = this.props;

@@ -146,7 +146,11 @@ module.exports = class AnimationEnhancer extends Component {
     let nextProps;
     if (animations) {
       const newRule = { style: animations };
-      const nextArgs /*: Args */ = Object.assign({}, args, { rules: args.rules.concat(newRule) });
+      const nextArgs /*: Args */ = {
+        transitionedProperties: args.transitionedProperties,
+        keyframes: args.keyframes,
+        rules: args.rules.concat(newRule),
+      };
       nextProps = Object.assign({}, this.props, { args: nextArgs });
     } else {
       nextProps = this.props;

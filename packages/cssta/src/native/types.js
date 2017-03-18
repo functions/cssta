@@ -11,56 +11,63 @@ export type VariablesStore = { [key:string]: string }
 
 export type StyleTuple = [string, string]
 
-export type BaseVariableArgs = {
+export type BaseVariableArgs = {|
   transitionedProperties: string[],
   importedVariables: string[],
   keyframesStyleTuples: { [key:string]: VariableKeyframeTuple[] },
-}
+|}
 
-export type RawVariableArgs = BaseVariableArgs & {
-  ruleTuples: RawVariableRuleTuple[]
-}
+export type RawVariableArgs = {|
+  ...BaseVariableArgs,
+  ruleTuples: RawVariableRuleTuple[],
+|}
 
-export type VariableArgs = BaseVariableArgs & {
-  ruleTuples: VariableRuleTuple[]
-}
+export type VariableArgs = {|
+  ...BaseVariableArgs,
+  ruleTuples: VariableRuleTuple[],
+|}
 
-export type BaseVariableRuleTuple = {
+export type BaseVariableRuleTuple = {|
   exportedVariables: VariablesStore,
   transitionParts: ?{ [key:string]: string[] },
   animationParts: ?string[],
   styleTuples: StyleTuple[],
-}
+|}
 
-export type RawVariableRuleTuple = BaseVariableRuleTuple & {
+export type RawVariableRuleTuple = {|
+  ...BaseVariableRuleTuple,
   selector: string,
-}
+|}
 
-export type VariableWithValidator = {
+export type BaseVariableWithValidator = {|
   validate?: (props: Object) => boolean,
-}
+|}
 
-export type VariableRuleTuple = BaseVariableRuleTuple & VariableWithValidator
+export type VariableRuleTuple = {|
+  ...BaseVariableRuleTuple,
+  ...BaseVariableWithValidator,
+|}
 
-export type VariableKeyframeTuple = {
+export type VariableKeyframeTuple = {|
   time: number,
   styleTuples: StyleTuple[],
-}
+|}
 
-export type Args = {
+export type Args = {|
   transitionedProperties: string[],
   keyframes: { [key:string]: Keyframe[] },
   rules: Rule[]
-}
+|}
 
-export type Rule = VariableWithValidator & {
+export type Rule = {|
+  ...BaseVariableWithValidator,
   style: any,
   transitions?: ?{ [key:string]: string[] },
   animation?: ?string[],
-}
+|}
 
-export type Keyframe = {
+export type Keyframe = {|
   time: number,
   styles: any,
-}
+|}
 */
